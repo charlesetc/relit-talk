@@ -1,0 +1,697 @@
+<rehtml>
+  <head>
+    <title>Relit</title>
+    <meta charset="utf-8">
+    <!--
+    <style>
+      @import url(https://fonts.googleapis.com/css?family=Ubuntu+Mono:400,700,400italic);
+      @import url('https://fonts.googleapis.com/css?family=Cabin+Condensed');
+    </style>
+    -->
+    <style>
+
+      body {
+        font-family: 'Noto Serif';
+      }
+      .left_uls ul {
+        text-align: left;
+        padding-top:30px;
+      }
+      .remark-slide-content.codeslide {
+        font-size:24px;
+      }
+      .left_uls ul li {
+        padding-bottom: 12px;
+        font-size:32px;
+      }
+      .reasoning, .unreasoning {
+        font-family:"Fira Sans";
+        position:relative;
+        top:-5px;
+      }
+      .reasoning:before { content: "✅ "; }
+      .unreasoning:before { content: "❌ "; }
+      .codeblock, .remark-code, pre {
+        color: black;
+        padding-top:13px;
+        padding-bottom:13px;
+        background:white;
+        display:block;
+        font-family: "Ubuntu Mono";
+        font-size: 24px;
+      }
+      .codeblock {
+        padding: 13px;
+      }
+      pre i, .codeblock i {
+        color:#3fd395;
+        font-style: normal;
+      }
+      pre p, .codeblock p {
+        padding: none;
+        margin: none;
+        display: inline;
+        color:#5e9af9;
+        font-size:24px !important;
+      }
+      i i { /* used for strings */
+        color:#07b251;
+      }
+      pre b::before {
+        content: "/* ";
+      }
+      pre b::after {
+        content: " */";
+      }
+      pre s {
+        text-decoration: line-through;
+      }
+      pre b {
+        color:#aaa;
+        font-weight: normal;
+
+      }
+      .hl-codeblock, pre {
+        background: none;
+      }
+      body .small h1 {
+        font-size: 40px;
+      }
+      .small h1 {
+        font-style: italic;
+      }
+      h1 code {
+        font-size: inherit !important;
+        font-style: normal; 
+      }
+      body .large h1 {
+        font-size: 80px;
+      }
+      .remark-slide-container {
+        background:#b8bdc4;
+      }
+      .remark-slide-number {
+        font-family:"Ubuntu Mono";
+        letter-spacing:-2px;
+        font-size:30px !important;
+      }
+      .remark-slide-content h1, h2, h3 {
+        font-family: 'Cabin Condensed', 'Fira Sans';
+        font-weight: normal;
+        font-size: 50px;
+      }
+      .remark-slide-content {
+        background:#eee;
+          font-size:30px;
+      }
+      .remark-code-line-highlighted {
+        /* background: solid yellow; */
+      }
+      .remark-slide-scaler {
+        box-shadow: inherit;
+        border: 1px solid black;
+        border-bottom: 0px;
+        border-top: 0px;
+      }
+      .remark-slide-content p {
+        font-size:30px;
+      }
+      .remark-code, .remark-inline-code {
+        font-size:24px;
+        font-family: 'Ubuntu Mono';
+      }
+
+      .largebullets ul {
+        display: block;
+        width: 100%;
+        padding:0;
+        padding-top:40px;
+      }
+
+      .largebullets ul li {
+        display: inline-block;
+        font-size:40px;
+        padding:0;
+        width: 50%;
+        height: 140px;
+        float:left;
+        text-align:center;
+        font-family: "Ubuntu Mono";
+      }
+
+      .jsonslide pre:nth-child(8) {
+        transform: rotate(30deg);
+        position: relative;
+        top: -300px;
+        left:100px;
+      }
+
+      a, a:visited, a:hover, a:active {
+        color:#23a3ff;
+      }
+
+      img {
+        top:440px;
+        left: 42%;
+        width: 15%;
+      }
+
+    </style>
+  </head>
+  <body>
+    <textarea id="source">
+
+class: center, large
+
+# Relit
+
+## Implementing Typed Literal Macros for Reason
+
+Charles Chamberlain *and* Cyrus Omar  <br/>
+*University of Chicago*
+<!-- &mdash; *University of Chicago* -->
+
+![relit](./relit.png)
+
+---
+
+class: middle
+
+
+<span class='codeblock hl-codeblock'>
+let x = Cons (2 + 2, Cons (Random.int (), Nil))
+</span>
+
+--
+
+<span class='codeblock hl-codeblock'>
+let x = (2 + 2) :: Random.int () :: []
+</span>
+
+--
+
+<span class='codeblock'>
+let x = <span style='color:#47e5a3'>[</span>2 + 2<span style='color:#47e5a3'>, </span>Random.int ()<span style='color:#47e5a3'>]</span>
+</span>
+
+
+---
+class: middle
+
+<span class='codeblock'>
+let x = <span style='color:#47e5a3'>[</span>2 + 2<span style='color:#47e5a3'>; </span>Random.int ()<span style='color:#47e5a3'>]</span>
+</span>
+
+<span class='codeblock'>
+let x = <span style='color:#47e5a3'>`<html><span>{{`</span>splice()<span style='color:#47e5a3'>`}}</span></html>`</span>
+</span>
+
+--
+
+<span class='codeblock'>
+let x = \`(<span style='color:#47e5a3'>`https://www.example.com:`$(</span>port<span style='color:#47e5a3'>)/wow</span>)\`
+</span>
+
+--
+
+
+<span class='codeblock'>
+let x = \`(<span style='color:#47e5a3'>127.0.0.1</span>)\`
+</span>
+
+--
+
+
+<span class='codeblock'>
+let x = \`(<span style='color:#47e5a3'>(\d+\w+)*</span>)\`
+</span>
+
+
+--
+
+
+<span class='codeblock'>
+  let x = \`(<span style='color:#47e5a3'>SELECT * FROM Animals WHERE Email=$(</span>email<span style='color:#47e5a3'>) <br/>
+    &nbsp;&nbsp; &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;   LIMIT 10</span>)\`
+</span>
+
+---
+
+class: middle
+
+<pre class='hl-codeblock'>
+<i>module</i> Regex = { 
+  <i>type</i> t =
+    | Empty
+    | AnyChar
+    | Str(string)
+    | Seq(t, t)
+    | Or(t, t)
+    | Star(t);
+};
+</pre>
+
+--
+
+<pre>
+<i>let</i> regex = Regex.(Or(Str(<i><i>"a"</i></i>), Star(Str(<i><i>"b"</i></i>))));
+</pre>
+
+--
+
+<pre>
+<i>let</i> regex = Regex.parse(<i><i>"a|b*"</i></i>);
+</pre>
+
+---
+
+class: center, middle
+
+Cyrus Omar, Jonathan Aldrich <br />
+<span style='color:#00aa4c'>
+*Reasonably Programmable Literal Notation* <br/>
+</span>
+ICFP 2018
+
+---
+
+# Relit
+
+<pre>
+<b>equal to Regex.(Or(Str("a"), Star(Str("b"))))</b>
+
+<i>let</i> regex = Regex_notation.<p>$regex</p> `(a|b*)`;
+</pre>
+--
+
+<pre>
+<i>open</i> Regex_notation;
+<i>let</i> regex = <p>$regex</p> `(a|b*)`;
+</pre>
+--
+
+<pre>
+<i>notation</i> <p>$r</p> = Regex_notation.<p>$regex</p>;
+<i>let</i> regex = <p>$r</p> `(a|b*)`;
+</pre>
+--
+
+<pre>
+<i>open notation</i> Regex_notation.<p>$regex</p>;
+<i>let</i> regex = `(a|b*)`;
+</pre>
+
+--
+
+<div class='reasoning'>Responsibility!</div>
+
+---
+
+class: small
+
+# A TLM Application
+
+<pre>
+<i>let</i> regex = <p>$regex</p> `(a|b*)`;
+</pre>
+
+--
+
+<br />
+
+# A TLM Definition
+
+<pre>
+<i>notation <p>$regex</p> at</i> Regex.t {
+  <b>menhir and ocamllex interface expected</b>
+  <i>lexer</i> Regex_parser.Lexer
+  <i>parser</i> Regex_parser.Parser.start
+  <i>in package</i> regex_parser;
+  <i>dependencies</i> = {
+    module Regex = Regex;
+  };
+};
+</pre>
+
+---
+
+# PPX Background
+
+<pre>
+      <b>normal ppx</b>
+
+      Parsetree.t
+      
+      |
+      |  <i>mapping</i>
+      |
+      v
+      
+      Parsetree.t
+</pre>
+
+
+---
+
+count: false
+
+# PPX Background
+
+<pre>
+      <b>normal ppx</b>      <b>relit ppx</b>
+
+      Parsetree.t           Parsetree.t
+                             
+      |                     |
+      |  <i>mapping</i>            |  <i>get TLM's signature</i>
+      |                     |
+      v                     v
+                            
+      Parsetree.t           <p>Typedtree.t</p>
+</pre>
+       
+---
+
+count: false
+
+# PPX Background
+
+<pre>
+      <b>normal ppx</b>      <b>relit ppx</b>
+
+      Parsetree.t           Parsetree.t
+                             
+      |                     |
+      |  <i>mapping</i>            |  <i>get TLM's signature</i>
+      |                     |
+      v                     v
+                            
+      Parsetree.t           <p>Typedtree.t</p>
+                             
+                            |
+                            |  <i>expand TLM</i>
+                            |
+                            v
+
+                            Parsetree.t
+</pre>
+
+---
+
+class: codeslide
+
+# Parsing an application
+
+<pre>
+<i>let</i> regex = <p>$regex</p> `(a|b*)`;
+</pre>
+--
+<pre>
+<b>expands to:</b>
+<i>let</i> regex =
+  <i>raise</i>(
+    RelitInternalDefn_regex.Apply(
+      <i><i>"You're using relit syntax without the relit ppx!"</i></i>,
+      <i><i>"a|b*"</i></i>
+    )
+  )
+</pre>
+
+---
+
+class: codeslide
+
+# Parsing a definition
+
+<pre>
+<i>notation <p>$regex</p> at</i> Regex.t {
+  <b>menhir and ocamllex interface expected</b>
+  <i>lexer</i> Regex_parser.Lexer
+  <i>parser</i> Regex_parser.Parser.start
+  <i>in package</i> regex_parser;
+  <i>dependencies</i> = { module Regex = Regex; };
+}; </pre>
+--
+<pre style='position:relative; top:-20px;'>
+<b>expands to:</b>
+<i>module</i> RelitInternalDefn_regex = {
+  <i>type nonrec</i> t = Regex.t;
+  <i>module</i> Lexer_Regex_parser__RelitInternal_dot__Lexer = {};
+  <i>module</i> Parser_Regex_parser__RelitInternal_dot__Parser = {};
+  <i>module</i> Nonterminal_start = {};
+  <i>module</i> Package_regex_parser = {};
+  <i>module</i> Dependencies = { <i>module</i> Regex = Regex };
+  <i>exception</i> Apply (string, string);
+}
+</pre>
+
+---
+
+# Time to expand
+
+<pre style='position:relative; top:-20px;'>
+<i>let</i> regex =
+  <i>raise</i>(
+    RelitInternalDefn_regex.Apply(
+      <i><i>"You're using relit syntax without the relit ppx!"</i></i>,
+      <i><i>"a|b*"</i></i>
+    )
+  )
+
+--
+
+<b>but we also have a singleton signature</b>
+<i>sig</i>
+  <i>type nonrec</i> t = Regex_example.Regex.t
+  <i>module</i> Lexer_Regex_parser__RelitInternal_dot__Lexer
+    : <i>sig end</i>
+  <i>module</i> Parser_Regex_parser__RelitInternal_dot__Parser
+    : <i>sig end</i>
+  <i>module</i> Nonterminal_start : <i>sig end</i>
+  <i>module</i> Package_regex_parser : <i>sig end</i>
+  <i>module</i> Dependencies
+    : <i>sig module</i> Regex = Regex_example.Regex <i>end</i>
+  <i>exception</i> Apply of string * string
+<i>end</i>
+</pre>
+
+---
+
+class: small, italic
+
+# What about those `Dependencies`?
+
+<pre>
+<i>module</i> Regex = {}; 
+  
+<i>let</i> regex = <p>$regex</p> `(a|b*)`;
+</pre>
+
+---
+
+class: small, italic
+count: false
+
+# What about those `Dependencies`?
+
+<pre>
+<i>module</i> Regex = {}; 
+  
+<s><i>let</i> regex = <p>$regex</p> `(a|b*)`;</s>
+
+<i>let</i> regex =
+  <i>raise</i>(
+    RelitInternalDefn_regex.Apply(
+      <i><i>"You're using relit syntax without the relit ppx!"</i></i>,
+      <i><i>"a|b*"</i></i>
+    )
+  )
+</pre>
+
+---
+
+class: small, italic
+count: false
+
+# What about those `Dependencies`?
+
+<pre>
+<i>module</i> Regex = {}; 
+  
+<s><i>let</i> regex = <p>$regex</p> `(a|b*)`;</s>
+
+<s><i>let</i> regex =
+  <i>raise</i>(
+    RelitInternalDefn_regex.Apply(
+      <i><i>"You're using relit syntax without the relit ppx!"</i></i>,
+      <i><i>"a|b*"</i></i>
+    )
+  )</s>
+
+<i>let</i> regex =
+  <i>let open</i> Pervasives <i>in</i>
+  <i>let open</i> RelitInternalDefn_regex.Dependencies <i>in</i>
+  Regex.Or(Regex.Str(<i><i>"a"</i></i>), Regex.Star(Regex.Str(<i><i>"b"</i></i>)))
+    : RelitInternalDefn_regex.t;
+</pre>
+
+--
+
+<span class='reasoning'>Context Independence!</span>
+
+---
+
+# Splicing
+
+
+<pre>
+<i>let</i> any_dna_base = <p>$regex</p> `(A|G|C|T)`;
+</pre>
+<pre>
+<i>let</i> bisA = <p>$regex</p> `(GC$(any_dna_base)GC)`;
+</pre>
+
+--
+
+<pre>
+<i>let</i> bisA = <p>$regex</p> `(GC$(<i>raise</i>(Not_found); any_dna_base)GC)`;
+</pre>
+
+--
+
+<pre>
+<i>let</i> bisA = <p>$regex</p> `(GC$(<p>$regex</p> `(U|$(any_dna_base))`)GC)`;
+</pre>
+
+---
+
+# A PPX?
+
+<pre>
+<i>let</i> regex = [%regex <i><i>"a|b*"</i></i>];
+
+<i>let</i> () = print_endline(Regex.show(regex));
+</pre>
+
+
+<div class='unreasoning'>Responsibility</div>
+--
+<div class='unreasoning'>Context Independence</div>
+--
+<div class='unreasoning'>Splicing</div>
+---
+
+class: center, middle, large
+
+# Key Takeaways
+
+<img style='width:400px' src='./key.png' />
+
+---
+
+#  Lessons Learned
+
+Typing PPXs have their challenges.
+
+--
+* Doesn't work within the toploop (utop).
+
+
+--
+
+* No equivalent of ocaml-migrate-parsetree for typed trees.
+
+--
+
+* Might work with dune!
+
+---
+
+class: center, middle
+
+# What's not implemented, yet?
+
+---
+
+class: center
+
+# No OCaml support
+
+--
+
+# Or Merlin support
+
+# ...yet!
+
+---
+
+# Pattern TLMs
+
+<pre>
+<i>match</i> some_list <i>with</i>
+| [] <i>-></i> None
+| [x, y] <i>-></i> Some (x, y)
+| x :: _ <i>-></i> Some (x, x)
+</pre>
+
+--
+
+<pre>
+<i>open notation</i> <p>$url</p>
+<i>match</i> some_url <i>with</i>
+| `($_protocol://www.example.com/$path)` <i>-></i> Some path
+| `($_protocol://www.example.com/)` <i>-></i> None
+| _ <i>-></i> <i>raise</i> (Failure "Not example.com!")
+</pre>
+
+---
+
+# Parametric TLMs
+
+<pre>
+<i>notation</i> (<i>type</i> 'a) <p>$regex</p> <i>at</i> 'a List.t {
+  <i>lexer</i> List_parser.Lexer
+  <i>parser</i> List_parser.Parser.start
+  <i>in package</i> list_parser;
+  <i>dependencies</i> = {
+    <i>module</i> List = List;
+  };
+};
+</pre>
+
+--
+
+<pre>
+<i>module</i> List_notation = (A : <i>sig type</i> t <i>end</i>) => {
+  <i>notation</i> <p>$list</p> <i>at</i> A.t list {
+    ...
+  };
+};
+</pre>
+
+---
+
+class: center
+
+# Thanks!
+
+Charles Chamberlain — Cyrus Omar
+
+[github.com/cyrus-/relit](https://github.com/cyrus-/relit/)
+
+![relit](./relit.png)
+
+
+
+    </textarea>
+    <script src="./remark.js">
+    </script>
+    <script>
+      var slideshow = remark.create({
+        countIncrementalSlides: false,
+        highlightStyle: "tomorrow",
+        highlightLines: false,
+      });
+    </script>
+  </body>
+</html>
